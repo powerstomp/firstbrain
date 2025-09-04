@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { z } from "zod";
 
-export function withValidation<T extends z.ZodTypeAny>(
+function withValidation<T extends z.ZodTypeAny>(
 	schema: T,
 	handler: (
 		req: Omit<Request, "body"> & { body: z.infer<T> },
@@ -17,3 +17,5 @@ export function withValidation<T extends z.ZodTypeAny>(
 		return handler(req, res, next);
 	};
 }
+
+export { withValidation }
