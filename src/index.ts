@@ -43,6 +43,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/users', userRouter(new UserService(orm.em.fork())));
+app.use('/chats', chatRouter(new ChatService(orm.em.fork())));
 
 app.listen(CFG.PORT, () => {
 	console.log(`App started at port ${CFG.PORT}`)
