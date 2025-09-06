@@ -4,7 +4,9 @@ import { MikroORM, RequestContext } from '@mikro-orm/core';
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import userRouter from './users/User.http.js';
+import chatRouter from './chats/Chat.http.js';
 import { UserService } from './users/User.service.js';
+import { ChatService } from './chats/Chat.service.js';
 
 const orm = await MikroORM.init();
 await orm.schema.refreshDatabase(); // TODO: Migrations
@@ -20,7 +22,7 @@ passport.use(new JwtStrategy({
 	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 	secretOrKey: CFG.JWT_SECRET,
 }, async (payload, done) => {
-	let user = userService.getUserById(payload.id);
+	let user = await userService.getUserById(payload.id);
 	if (!user)
 		return done(null, false);
 	return done(null, user)
@@ -28,6 +30,16 @@ passport.use(new JwtStrategy({
 
 app.use((req, res, next) => {
 	RequestContext.create(orm.em, next);
+});
+
+app.use((req, res, next) => {
+	passport.authenticate("jwt", { session: false },
+		(err: any, user: Express.User | undefined | null) => {
+			if (!err && user)
+				req.user = user;
+			next();
+		}
+	)(req, res, next);
 });
 
 app.use('/users', userRouter(new UserService(orm.em.fork())));
