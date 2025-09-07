@@ -6,7 +6,7 @@ import { Message } from "./Message.entity.js";
 export class Chat {
 	[OptionalProps]?: 'createdAt' | 'updatedAt'
 
-	@PrimaryKey()
+	@PrimaryKey({ type: 'uuid' })
 	id = uuid();
 
 	@OneToMany({ mappedBy: 'chat' })

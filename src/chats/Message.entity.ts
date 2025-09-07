@@ -7,7 +7,7 @@ import { User } from "@/users/User.entity.js";
 export class Message {
 	[OptionalProps]?: 'createdAt'
 
-	@PrimaryKey()
+	@PrimaryKey({ type: 'uuid' })
 	id = uuid();
 
 	@ManyToOne()
