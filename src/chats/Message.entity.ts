@@ -1,4 +1,4 @@
-import { Entity, PrimaryKey, Property, ManyToOne, OptionalProps } from "@mikro-orm/core";
+import { Entity, PrimaryKey, Property, ManyToOne, OptionalProps, UuidType } from "@mikro-orm/core";
 import { v7 as uuid } from 'uuid';
 import { Chat } from "./Chat.entity.js";
 import { User } from "@/users/User.entity.js";
@@ -7,7 +7,7 @@ import { User } from "@/users/User.entity.js";
 export class Message {
 	[OptionalProps]?: 'createdAt'
 
-	@PrimaryKey({ type: 'uuid' })
+	@PrimaryKey({ type: UuidType })
 	id = uuid();
 
 	@ManyToOne()
