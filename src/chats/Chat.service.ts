@@ -2,9 +2,11 @@ import { EntityManager } from "@mikro-orm/core";
 import { Chat } from "./Chat.entity.js";
 import { User } from "@/users/User.entity.js";
 import { Message } from "./Message.entity.js";
+import { EventEmitter } from "events";
 
 export class ChatService {
-	constructor(readonly em: EntityManager) {}
+	constructor(readonly em: EntityManager,
+		private eventBus?: EventEmitter) {}
 
 	async getChatById(id: string) {
 		return this.em.findOne(Chat, { id });
@@ -15,7 +17,9 @@ export class ChatService {
 	async createChatByMessage(author: User, text: string) {
 		let chat = this.em.create(Chat, {});
 		let message = this.em.create(Message, { chat, author, text });
+
 		await this.em.flush();
+		this.eventBus?.emit('new chat', chat, message);
 		return chat;
 	}
 	async addMessage(chatId: string, author: User, text: string) {
@@ -23,7 +27,9 @@ export class ChatService {
 		if (!chat)
 			throw new Error("Chat not found.");
 		let message = this.em.create(Message, { chat, author, text });
+
 		await this.em.flush();
+		this.eventBus?.emit('new message', message);
 		return message;
 	}
 };

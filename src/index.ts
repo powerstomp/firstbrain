@@ -7,6 +7,7 @@ import userRouter from './users/User.http.js';
 import chatRouter from './chats/Chat.http.js';
 import { UserService } from './users/User.service.js';
 import { ChatService } from './chats/Chat.service.js';
+import EventEmitter from 'events';
 
 const orm = await MikroORM.init();
 await orm.schema.refreshDatabase(); // TODO: Migrations
@@ -16,7 +17,9 @@ const app = express();
 app.use(express.urlencoded());
 app.use(express.json());
 
+let eventBus = new EventEmitter();
 let userService = new UserService(orm.em.fork());
+let chatService = new ChatService(orm.em.fork(), eventBus);
 
 passport.use(new JwtStrategy({
 	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -42,8 +45,8 @@ app.use((req, res, next) => {
 	)(req, res, next);
 });
 
-app.use('/users', userRouter(new UserService(orm.em.fork())));
-app.use('/chats', chatRouter(new ChatService(orm.em.fork())));
+app.use('/users', userRouter(userService));
+app.use('/chats', chatRouter(chatService));
 
 app.listen(CFG.PORT, () => {
 	console.log(`App started at port ${CFG.PORT}`)
