@@ -8,5 +8,5 @@ export class User {
 	@Property()
 	username!: string;
 	@Property({ hidden: true })
-	password!: string;
+	password!: string | null;
 };

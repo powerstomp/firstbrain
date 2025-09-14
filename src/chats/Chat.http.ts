@@ -6,12 +6,6 @@ import { ChatService } from "./Chat.service.js";
 export default function (chatService: ChatService) {
 	const router = Router();
 
-	router.post('/', withValidation(z.object({
-		chatId: z.uuid().nonempty(),
-	}), requireAuth(async (req, res) => {
-		let chat = await chatService.getChatById(req.body.chatId);
-		res.json(chat);
-	})));
 	router.put('/', withValidation(z.object({
 		text: z.string().nonempty(),
 	}), requireAuth(async (req, res) => {
@@ -25,6 +19,12 @@ export default function (chatService: ChatService) {
 		let message = await chatService.addMessage(req.body.chatId, req.user, req.body.text);
 		res.json(message);
 	})));
+	router.get('/:chatId', requireAuth(async (req, res) => {
+		res.json(await chatService.getChatById(req.params.chatId));
+	}));
+	router.get('/', requireAuth(async (req, res) => {
+		res.json(await chatService.getAllChats());
+	}));
 
 	return router;
 }

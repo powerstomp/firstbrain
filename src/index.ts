@@ -12,6 +12,9 @@ import { Server as SocketServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import { User } from './users/User.entity.js';
 import { createServer } from 'http';
+import { Chat } from './chats/Chat.entity.js';
+import { Message } from './chats/Message.entity.js';
+import * as llm from './utils/llm.js';
 
 const orm = await MikroORM.init();
 await orm.schema.refreshDatabase(); // TODO: Migrations
@@ -26,6 +29,10 @@ app.use(express.json());
 let eventBus = new EventEmitter();
 let userService = new UserService(orm.em.fork());
 let chatService = new ChatService(orm.em.fork(), eventBus);
+
+let user = await userService.createUser('admin', '123456');
+let llmUser = await userService.createUser("LLM", null);
+let chat = await chatService.createChatByMessage(user, 'Demo chat.');
 
 passport.use(new JwtStrategy({
 	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -77,19 +84,25 @@ sio.use((socket, next) => {
 });
 
 sio.on('connection', async (socket) => {
-	const user = (socket as any).user as User;
-	console.log('New connection:', socket.conn.remoteAddress);
-	socket.on('disconnect', () => {
-		console.log('Disconnected:', socket.conn.remoteAddress);
+	socket.on('chat:join', (chatId) => {
+		socket.join(chatId);
 	});
-	socket.emit('chats', await chatService.getAllChats());
+	socket.on('chat:leave', (chatId) => {
+		socket.leave(chatId);
+	});
 });
 
-eventBus.on('new chat', async (chat) => {
+eventBus.on('new chat', async (chat, message) => {
 	sio.emit('chat:new', chat);
 });
-eventBus.on('new message', async (chat) => {
-	sio.emit('chat:new', chat);
+eventBus.on('new message', async (message: Message, chat: Chat) => {
+	sio.to(chat.id).emit('message:new', message);
+
+	if (message.text.includes('@llm'))
+		llm.ask(message.text).then((response) => {
+			if (response.choices[0].message.content)
+				chatService.addMessage(chat, llmUser, response.choices[0].message.content);
+		}).catch(console.error);
 });
 
 httpServer.listen(CFG.PORT, () => {

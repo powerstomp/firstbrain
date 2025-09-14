@@ -1,4 +1,4 @@
-import { defineConfig } from '@mikro-orm/postgresql';
+import { defineConfig, Platform, TextType, Type } from '@mikro-orm/postgresql';
 import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
 import { User } from './users/User.entity.js';
 import { CFG } from './config.js';
@@ -14,4 +14,11 @@ export default defineConfig({
 	password: CFG.DB_PASSWORD,
 	metadataProvider: TsMorphMetadataProvider,
 	debug: true,
+	discovery: {
+		getMappedType(type: string, platform: Platform) {
+			if (type === 'string') // varchar(255) -> text
+				return Type.getType(TextType);
+			return platform.getDefaultMappedType(type);
+		},
+	},
 });

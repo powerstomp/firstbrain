@@ -15,7 +15,7 @@ export default function (userService: UserService) {
 		let user = await userService.authenticateUser(req.body.username, req.body.password)
 		if (!user)
 			return res.status(401).send("");
-		res.json({ token: jwt.sign({ id: user.id }, CFG.JWT_SECRET) });
+		res.json({ token: jwt.sign({ id: user.id }, CFG.JWT_SECRET), user });
 	}));
 
 	return router;

@@ -3,7 +3,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import { z } from "zod";
 
 function requireAuth(handler: (
-	req: Request & { user: User },
+	req: Omit<Request, "user"> & { user?: User },
 	res: Response,
 	next: NextFunction) => any
 ): RequestHandler {

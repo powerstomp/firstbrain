@@ -9,6 +9,9 @@ export class Chat {
 	@PrimaryKey({ type: UuidType })
 	id = uuid();
 
+	@Property()
+	name?: string;
+
 	@OneToMany({ mappedBy: 'chat' })
 	messages = new Collection<Message>(this);
 

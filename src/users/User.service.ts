@@ -8,8 +8,11 @@ export class UserService {
 	async getUserById(id: number) {
 		return this.em.findOne(User, { id });
 	}
-	async createUser(username: string, password: string) {
-		let user = this.em.create(User, { username, password: await hashPassword(password) });
+	async createUser(username: string, password: string | null) {
+		let user = this.em.create(User, {
+			username,
+			password: !password ? null : await hashPassword(password)
+		});
 		await this.em.flush();
 		return user;
 	}
