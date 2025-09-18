@@ -1,6 +1,7 @@
 import { Collection, Entity, OneToMany, OptionalProps, PrimaryKey, Property, UuidType } from "@mikro-orm/core";
 import { v7 as uuid } from 'uuid';
 import { Message } from "./Message.entity.js";
+import { Card } from "./Card.entity.js";
 
 @Entity()
 export class Chat {
@@ -14,6 +15,9 @@ export class Chat {
 
 	@OneToMany({ mappedBy: 'chat' })
 	messages = new Collection<Message>(this);
+
+	@OneToMany({ mappedBy: 'chat' })
+	flashcards = new Collection<Card>(this);
 
 	@Property()
 	createdAt = new Date();

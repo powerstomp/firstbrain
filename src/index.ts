@@ -15,6 +15,8 @@ import { createServer } from 'http';
 import { Chat } from './chats/Chat.entity.js';
 import { Message } from './chats/Message.entity.js';
 import * as llm from './utils/llm.js';
+import { CardService } from './chats/Card.service.js';
+import { Card } from './chats/Card.entity.js';
 
 const orm = await MikroORM.init();
 await orm.schema.refreshDatabase(); // TODO: Migrations
@@ -29,6 +31,7 @@ app.use(express.json());
 let eventBus = new EventEmitter();
 let userService = new UserService(orm.em.fork());
 let chatService = new ChatService(orm.em.fork(), eventBus);
+let cardService = new CardService(orm.em.fork(), eventBus);
 
 let user = await userService.createUser('admin', '123456');
 let llmUser = await userService.createUser("LLM", null);
@@ -92,16 +95,23 @@ sio.on('connection', async (socket) => {
 	});
 });
 
-eventBus.on('new chat', async (chat, message) => {
+eventBus.on('new chat', async (chat: Chat, message: Message) => {
 	sio.emit('chat:new', chat);
 });
+eventBus.on('new card', async (card: Card, chat: Chat) => {
+	sio.to(chat.id).emit('card:new', card);
+})
 eventBus.on('new message', async (message: Message, chat: Chat) => {
 	sio.to(chat.id).emit('message:new', message);
 
 	if (message.text.includes('@llm'))
-		llm.ask(message.text).then((response) => {
-			if (response.choices[0].message.content)
-				chatService.addMessage(chat, llmUser, response.choices[0].message.content);
+		llm.ask(chat).then(({ response, cards }) => {
+			chatService.addMessage(chat, llmUser,
+				`${response}
+### Review questions:
+${cards.map(({ front, back }) => `- **${front}**\n${back}`).join('\n')}`);
+			for (const card of cards)
+				cardService.createCard(chat, card.front, card.back);
 		}).catch(console.error);
 });
 

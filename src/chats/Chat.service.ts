@@ -45,4 +45,10 @@ export class ChatService {
 		chat.name = name;
 		return await this.em.flush();
 	}
+	async getCards(chatOrId: string | Chat) {
+		let chat = await this.getChat(chatOrId);
+		if (!chat)
+			throw Error("Chat not found.");
+		return chat.cards;
+	}
 };

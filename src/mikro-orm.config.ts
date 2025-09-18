@@ -4,9 +4,10 @@ import { User } from './users/User.entity.js';
 import { CFG } from './config.js';
 import { Chat } from './chats/Chat.entity.js';
 import { Message } from './chats/Message.entity.js';
+import { Card } from './chats/Card.entity.js';
 
 export default defineConfig({
-	entities: [User, Chat, Message],
+	entities: [User, Chat, Message, Card],
 	dbName: CFG.DB_NAME,
 	host: CFG.DB_HOST,
 	port: CFG.DB_PORT,

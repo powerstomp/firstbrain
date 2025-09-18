@@ -1,5 +1,6 @@
-import { Entity, OptionalProps, PrimaryKey, Property, UuidType } from "@mikro-orm/core";
+import { Entity, ManyToOne, OptionalProps, PrimaryKey, Property, UuidType } from "@mikro-orm/core";
 import { v7 as uuid } from 'uuid';
+import { Chat } from "./Chat.entity.js";
 
 @Entity()
 export class Card {
@@ -13,6 +14,9 @@ export class Card {
 
 	@Property()
 	back = "";
+
+	@ManyToOne()
+	chat!: Chat;
 
 	@Property()
 	createdAt = new Date();
